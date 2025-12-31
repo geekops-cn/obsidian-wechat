@@ -1,7 +1,7 @@
 {
   "id": "obsidian-wechat-html-exporter",
   "name": "WeChat HTML Exporter",
-  "version": "1.1.1",
+  "version": "1.2",
   "minAppVersion": "1.5.0",
   "description": "Export Markdown to WeChat public account compatible HTML with preview",
   "author": "",

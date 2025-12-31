@@ -81,12 +81,18 @@ class WeChatHtmlView extends View {
     this.styleEl.textContent = this.plugin.settings.customCss;
     this.previewContentEl.appendChild(this.styleEl);
     
-    // 创建重要提示元素，初始颜色使用默认主题色
+    // 创建重要提示元素，使用自定义的重要提示文字
     this.importantNoteEl = document.createElement('div');
     this.importantNoteEl.className = 'important-note';
-    // 初始颜色将在update方法中根据主题更新，这里使用占位符
-    this.importantNoteEl.innerHTML = '<div style="margin-bottom: 24px; font-size: 16px; line-height: 1.8; color: #333;"><strong>重要提示：</strong> 微信推送规则改版，未被标星的公众号文章无法展示完整封面，很容易错过。为防走丢，朋友们都加个星标吧！操作方法：<strong>关注"极客运维研习社"公众号—>点击右上角的...—>设为星标</strong></div>';
+    // 初始颜色将在update方法中根据主题更新
+    this.importantNoteEl.innerHTML = `<div style="margin-bottom: 24px; font-size: 16px; line-height: 1.8; color: #333;">${this.plugin.settings.importantNote}</div>`;
     this.previewContentEl.appendChild(this.importantNoteEl);
+    
+    // 应用默认主题颜色到note-label类的strong标签
+    const noteLabelStrong = this.importantNoteEl.querySelector('.note-label');
+    if (noteLabelStrong) {
+      noteLabelStrong.style.color = '#0366d6' + ' !important'; // 默认主题色，后续会更新
+    }
     
     // 创建Markdown内容容器
     this.markdownContentEl = document.createElement('div');
@@ -189,18 +195,13 @@ class WeChatHtmlView extends View {
         themeColor = '#0366d6';
     }
     
-    // 确保重要提示文字内容存在，使用当前主题色作为加粗颜色
-    const importantNoteContent = '<div style="margin-bottom: 24px; font-size: 16px; line-height: 1.8; color: #333;"><strong style="color: ${themeColor} !important;">重要提示：</strong> 微信推送规则改版，未被标星的公众号文章无法展示完整封面，很容易错过。为防走丢，朋友们都加个星标吧！操作方法：<strong style="color: ${themeColor} !important;">关注"极客运维研习社"公众号—>点击右上角的...—>设为星标</strong></div>';
+    // 确保重要提示文字内容存在，直接使用完整的HTML内容
+    this.importantNoteEl.innerHTML = `<div style="margin-bottom: 24px; font-size: 16px; line-height: 1.8; color: #333;">${this.plugin.settings.importantNote}</div>`;
     
-    // 检查并更新重要提示内容
-    if (!this.importantNoteEl.innerHTML || !this.importantNoteEl.innerHTML.includes('important-note')) {
-      this.importantNoteEl.innerHTML = importantNoteContent.replace(/\$\{themeColor\}/g, themeColor);
-    } else {
-      // 更新重要提示文字的颜色样式，确保与标题颜色一致
-      const strongElements = this.importantNoteEl.querySelectorAll('strong');
-      strongElements.forEach(strong => {
-        strong.style.color = themeColor + ' !important';
-      });
+    // 只设置带note-label类的strong标签的颜色，不影响用户自定义内容中的其他strong标签
+    const noteLabelStrong = this.importantNoteEl.querySelector('.note-label');
+    if (noteLabelStrong) {
+      noteLabelStrong.style.color = themeColor + ' !important';
     }
     
     const tempEl = document.createElement('div');
@@ -3111,7 +3112,8 @@ const THEMES = {
 // 默认设置常量
 const DEFAULT_SETTINGS = {
   theme: "default",
-  customCss: THEMES.default
+  customCss: THEMES.default,
+  importantNote: '<strong class="note-label">重要提示：</strong> 微信推送规则改版，未被标星的公众号文章无法展示完整封面，很容易错过。为防走丢，朋友们都加个星标吧！操作方法：<strong>关注"极客运维研习社"公众号—>点击右上角的...—>设为星标</strong>'
 };
 
 // 设置页面类
@@ -3127,6 +3129,48 @@ class WeChatHtmlSettingTab extends PluginSettingTab {
     containerEl.empty();
     
     containerEl.createEl('h2', { text: '微信HTML导出设置' });
+    
+    // 主题选择设置
+    const themeSetting = containerEl.createDiv();
+    themeSetting.createEl('h3', { text: '主题设置' });
+    
+    // 重要提示文字设置
+    const noteSetting = containerEl.createDiv();
+    noteSetting.createEl('h3', { text: '重要提示文字设置' });
+    
+    const noteLabel = noteSetting.createEl('label', { text: '重要提示文字：' });
+    noteLabel.style.display = 'block';
+    noteLabel.style.marginBottom = '8px';
+    noteLabel.style.fontWeight = '600';
+    
+    const noteTextarea = noteSetting.createEl('textarea');
+    noteTextarea.value = this.plugin.settings.importantNote || DEFAULT_SETTINGS.importantNote;
+    noteTextarea.style.width = '100%';
+    noteTextarea.style.height = '120px';
+    noteTextarea.style.padding = '8px';
+    noteTextarea.style.border = '1px solid #ccc';
+    noteTextarea.style.borderRadius = '4px';
+    noteTextarea.style.fontFamily = 'monospace';
+    noteTextarea.style.fontSize = '14px';
+    
+    noteTextarea.addEventListener('input', async () => {
+      this.plugin.settings.importantNote = noteTextarea.value;
+      await this.plugin.saveSettings();
+      
+      // 刷新所有打开的预览视图
+      const leaves = this.app.workspace.getLeavesOfType('wechat-html-preview');
+      leaves.forEach(leaf => {
+        if (leaf.view && leaf.view.refreshPreview) {
+          leaf.view.refreshPreview();
+        }
+      });
+    });
+    
+    const noteHint = noteSetting.createEl('p');
+    noteHint.textContent = '提示：重要提示文字会显示在HTML预览的顶部，用于向读者传达重要信息。支持HTML语法，如 <strong class="note-label">重要提示：</strong>、<span style="color:red">红色文字</span> 等。';
+    noteHint.style.fontSize = '12px';
+    noteHint.style.color = '#666';
+    noteHint.style.marginTop = '8px';
   }
 }
 
