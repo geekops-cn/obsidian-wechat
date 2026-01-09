@@ -240,8 +240,22 @@
 
 .preview-content strong {
   font-weight: 600;
-  color: var(--text-normal);
-  transition: color 0.3s ease;
+  color: rgb(255, 108, 108);
+  background-image: linear-gradient(transparent 70%, rgba(255, 108, 108, 0.2) 50%);
+  background-position: 0px 0px;
+  background-size: initial;
+  background-repeat: initial;
+  background-attachment: initial;
+  padding: 0px 2px;
+  letter-spacing: 1px;
+  word-spacing: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Special style for note-label class - allows JavaScript to override color */
+.preview-content strong.note-label {
+  background-image: none;
+  /* Color will be set by JavaScript based on theme */
 }
 
 .preview-content em {
@@ -323,8 +337,12 @@
 }
 
 .preview-content li strong {
-  color: var(--vue-primary-dark);
+  color: rgb(255, 108, 108);
+  background-image: linear-gradient(transparent 70%, rgba(255, 108, 108, 0.2) 50%);
   font-weight: 600;
+  padding: 0px 2px;
+  letter-spacing: 1px;
+  word-spacing: 2px;
 }
 
 /* Blockquote styles - ChatGPT theme inspired by WeChat */

@@ -1059,7 +1059,11 @@ class WeChatHtmlView extends View {
               if (currentTheme === 'tech') {
                 element.style.color = '#ff0000';
               } else if (currentTheme === 'chatgpt') {
-                element.style.color = '#d93026';
+                element.style.color = 'rgb(255, 108, 108)';
+                element.style.background = 'linear-gradient(transparent 70%, rgba(255, 108, 108, 0.2) 50%)';
+                element.style.padding = '0px 2px';
+                element.style.letterSpacing = '1px';
+                element.style.wordSpacing = '2px';
               } else if (currentTheme === 'deepseek') {
                 element.style.color = '#1a6dfc';
               } else {
@@ -1076,8 +1080,8 @@ class WeChatHtmlView extends View {
             }
             break;
           case 'blockquote':
-            element.style.margin = '24px 0';
-            element.style.padding = '16px 24px'; // 设置基本内边距
+            element.style.margin = '20px 0';
+            element.style.padding = '10px 20px';
             element.style.position = 'relative';
             if (currentTheme === 'deepseek') {
               element.style.background = 'linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)';
@@ -1107,14 +1111,26 @@ class WeChatHtmlView extends View {
               element.style.background = '#f9f9f9';
               element.style.borderLeft = '4px solid #ff0000';
             } else if (currentTheme === 'chatgpt') {
-              element.style.background = '#fafafa';
-              element.style.borderLeft = '4px solid #d93026';
+              element.style.background = 'linear-gradient(90deg, rgba(254, 255, 232, 0.7) 0%, rgba(241, 232, 255, 0.7) 100%)';
+              element.style.backgroundColor = 'rgb(255, 255, 255)';
+              element.style.borderLeft = '4px solid rgb(250, 212, 163)';
+              element.style.borderTop = 'none';
+              element.style.borderBottom = 'none';
+              element.style.borderRight = 'none';
+              element.style.borderRadius = '0';
+              element.style.color = 'rgba(0, 0, 0, 0.55)';
+              element.style.fontSize = '15px';
+              element.style.lineHeight = '1.6';
+              element.style.letterSpacing = '0.034em';
+              element.style.textAlign = 'justify';
             } else {
               element.style.background = '#f9f9f9';
               element.style.borderLeft = '4px solid #ddd';
             }
-            element.style.color = '#4a5568';
-            element.style.borderRadius = '0 8px 8px 0';
+            if (currentTheme !== 'chatgpt') {
+              element.style.color = '#4a5568';
+              element.style.borderRadius = '0 8px 8px 0';
+            }
             // 减少blockquote内第一个p元素的顶部margin，缩小与引号的距离
             const firstParagraph = element.querySelector('p:first-child');
             if (firstParagraph) {
