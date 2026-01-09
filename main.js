@@ -208,7 +208,20 @@ class WeChatHtmlView extends View {
 
     // 直接使用原始内容，让MarkdownRenderer处理所有格式
     await MarkdownRenderer.renderMarkdown(markdownContent, tempEl, file.path, this);
-    
+
+    // Debug: 检查callout元素
+    console.log('=== Callout Debug ===');
+    const callouts = tempEl.querySelectorAll('[class*="callout"]');
+    console.log('Found callout elements:', callouts.length);
+    callouts.forEach((el, i) => {
+      console.log(`Callout ${i}:`, {
+        tagName: el.tagName,
+        className: el.className,
+        classList: Array.from(el.classList),
+        innerHTML: el.innerHTML.substring(0, 100)
+      });
+    });
+
     // 处理本地图片路径
     // 1. 处理internal-embed元素（Obsidian内部图片链接）
     const internalEmbeds = tempEl.querySelectorAll('span.internal-embed');
@@ -893,11 +906,19 @@ class WeChatHtmlView extends View {
       const allElements = finalContainer.querySelectorAll('*:not(pre)');
       allElements.forEach(element => {
         // 特殊处理：保留代码高亮的span元素（已经在pre处理中完成）
-        
+
+        // 在移除class之前，检查是否是callout相关元素
+        const classList = Array.from(element.classList || []);
+        const isCallout = classList.includes('callout');
+        const isCalloutTitle = classList.includes('callout-title');
+        const isCalloutContent = classList.includes('callout-content');
+        const isCalloutIcon = classList.includes('callout-icon');
+        const isCalloutTitleInner = classList.includes('callout-title-inner');
+
         // 移除元素的CSS类名和ID
         element.removeAttribute('class');
         element.removeAttribute('id');
-        
+
         // 移除所有data-*属性
         const attributes = Array.from(element.attributes);
         attributes.forEach(attr => {
@@ -905,10 +926,48 @@ class WeChatHtmlView extends View {
             element.removeAttribute(attr.name);
           }
         });
-        
+
         // 特殊处理非代码块元素，简化样式以确保微信兼容性
         const tagName = element.tagName.toLowerCase();
-        
+
+        // 处理callout元素
+        if (isCallout && tagName === 'div') {
+          element.style.margin = '15px 0';
+          element.style.padding = '12px 16px';
+          element.style.borderRadius = '8px';
+          element.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+          element.style.backgroundColor = '#ffffff';
+          element.style.borderLeft = '4px solid #42b883';
+          return; // 跳过后续的switch处理
+        }
+
+        if (isCalloutTitle && tagName === 'div') {
+          element.style.display = 'flex';
+          element.style.alignItems = 'center';
+          element.style.marginBottom = '8px';
+          element.style.fontWeight = '600';
+          element.style.color = '#42b883';
+          return;
+        }
+
+        if (isCalloutIcon && tagName === 'div') {
+          element.style.marginRight = '8px';
+          element.style.fontSize = '16px';
+          return;
+        }
+
+        if (isCalloutTitleInner && tagName === 'div') {
+          element.style.fontSize = '16px';
+          return;
+        }
+
+        if (isCalloutContent && tagName === 'div') {
+          element.style.color = '#333';
+          element.style.fontSize = '14px';
+          element.style.lineHeight = '1.5';
+          return;
+        }
+
         // 根据元素类型设置内联样式
         switch (tagName) {
           case 'h1':
